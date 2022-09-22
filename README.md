@@ -1,6 +1,6 @@
 # Go Web Auth Checker
 
-The Go Web Auth Checker (gowac) security tool (re-write of wac in Go) will check a supplied list of urls using auth options supplied to see if access is granted or not, 
+The Go Web Auth Checker (gowac) security tool (a rewrite of [wac](https://github.com/stavinski/wac) in Go) will check a supplied list of urls using auth options supplied to see if access is granted or not, 
 this can be used to expose security holes where certain urls have not been locked down.
 
 You would typically compile a list of urls into a file either by using a tool to spider the site or by building it via the directory
