@@ -19,10 +19,10 @@ import (
 
 type Options struct {
 	// request options
-	Threads     uint8  `short:"t" long:"threads" description:"Number of request threads" default:"10"`
+	Threads     int    `short:"t" long:"threads" description:"Number of request threads" default:"10"`
 	Cookie      string `short:"c" long:"cookie" descrption:"Cookie to use for requests"`
 	Auth        string `short:"a" long:"auth" description:"Authorization to use for requests in format username:password"`
-	WaitSeconds uint16 `short:"w" long:"wait" description:"Number of seconds to wait before timing out request" default:"5"`
+	WaitSeconds int    `short:"w" long:"wait" description:"Number of seconds to wait before timing out request" default:"5"`
 
 	// response options
 	Status   int    `short:"s" long:"status" description:"Check for specific status code returned such as 401"`
@@ -111,11 +111,6 @@ func setupRequest(req *http.Request, opts *Options) error {
 			return fmt.Errorf("auth value is invalid, must be provided as 'username:password'")
 		}
 		req.SetBasicAuth(username, pass)
-	}
-
-	// do not perform redirects
-	http.DefaultClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		return http.ErrUseLastResponse
 	}
 
 	return nil
@@ -247,9 +242,14 @@ func main() {
 		log.Fatalln(err)
 	}
 
+	// do not perform redirects
+	http.DefaultClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
 	urls := readURLs(string(opts.Args.URLs))
 	splitCtx := utils.Split(opts.Threads, func() chan PipelineContext { return send(urls, opts) })
-	parsedCtx := parse(utils.Merge(splitCtx), opts)
+	parsedCtx := parse(utils.Merge(splitCtx...), opts)
 	done := cleanup(parsedCtx)
 	<-done // wait for the done signal
 }
