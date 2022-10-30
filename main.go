@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -89,7 +90,11 @@ func readURLs(filename string) <-chan string {
 		}
 
 		for scanner.Scan() {
-			out <- scanner.Text()
+			raw := scanner.Text()
+			// only use valid URLs
+			if _, err := url.ParseRequestURI(raw); err == nil {
+				out <- scanner.Text()
+			}
 		}
 		close(out)
 	}()
@@ -158,7 +163,7 @@ func parse(ctx <-chan PipelineContext, opts *Options) chan PipelineContext {
 				if errors.Is(res.Error, context.DeadlineExceeded) {
 					fmt.Printf("[-] <%s>: Request timed out\n", res.URL)
 				}
-				fmt.Printf("[!] <%s>: Error making request\n", res.URL)
+				fmt.Printf("[!] <%s>: Error making request: %q\n", res.URL, res.Error)
 				out <- res
 				continue
 			}
